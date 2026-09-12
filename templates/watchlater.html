@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch Later | MovieFlix</title>
+
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- MovieFlix Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="/" class="logo-brand">
+            <div class="logo-icon"><i class="fa-solid fa-play"></i></div>
+            <span class="logo-text">MovieFlix</span>
+        </a>
+
+        <ul class="nav-menu">
+            <li><a href="/" class="nav-link"><i class="fa-solid fa-house"></i> <span>Home</span></a></li>
+            <li><a href="{{ url_for('favorites_page') }}" class="nav-link"><i class="fa-solid fa-heart"></i> <span>Favorites</span></a></li>
+            <li><a href="{{ url_for('watch_later_page') }}" class="nav-link active"><i class="fa-solid fa-bookmark"></i> <span>Watch Later</span></a></li>
+            <li><a href="{{ url_for('dashboard') }}" class="nav-link"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            
+            {% if session.get('user') %}
+                <li><a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user"></i> <span>Profile</span></a></li>
+                <li class="nav-profile">
+                    <a href="{{ url_for('profile') }}" class="avatar-badge">
+                        {{ session['user'][0]|upper }}
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span>
+                    </a>
+                </li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}" class="btn-cta">Sign In</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="content-section">
+
+        <div class="section-header" style="margin-bottom: 32px;">
+            <div class="section-title-box">
+                <div class="section-indicator" style="background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));"></div>
+                <h1 class="section-title" style="font-size: 1.8rem;">Watch Later List</h1>
+            </div>
+            {% if watch_later %}
+                <span class="section-badge" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.3);">
+                    {{ watch_later|length }} Movies Saved
+                </span>
+            {% endif %}
+        </div>
+
+        {% if watch_later %}
+            <div class="movie-grid">
+                {% for movie in watch_later %}
+                    {% set mtitle = movie['title'] if movie is mapping else movie %}
+                    {% set mposter = movie['poster'] if movie is mapping else None %}
+                    {% set mrating = movie['rating'] if movie is mapping else 'N/A' %}
+                    {% set mgenre = movie['genre'] if movie is mapping else 'N/A' %}
+                    {% set myear = movie['year'] if movie is mapping else 'N/A' %}
+
+                    <div class="movie-card lazy-poster-card" data-movie-title="{{ mtitle|e }}">
+                        <div class="poster-box">
+                            {% if mposter and mposter != 'N/A' %}
+                                <img class="poster-img" src="{{ mposter }}" alt="{{ mtitle }}">
+                            {% else %}
+                                <div class="poster-placeholder">
+                                    <i class="fa-solid fa-bookmark" style="color:var(--accent-cyan);"></i>
+                                    <span>{{ mtitle }}</span>
+                                </div>
+                            {% endif %}
+
+                            <div class="card-overlay">
+                                <div class="overlay-actions">
+                                    <button class="btn-action-icon" onclick="openMovieDetailsModal('{{ mtitle|replace('\'', '\\\'') }}')">
+                                        <i class="fa-solid fa-circle-info"></i> Details
+                                    </button>
+                                    <div class="action-btn-row">
+                                        <form action="/watched" method="POST" style="flex:1;">
+                                            <input type="hidden" name="movie" value="{{ mtitle }}">
+                                            <button type="submit" class="btn-action-icon done" title="Mark as Watched"><i class="fa-solid fa-check"></i> Watched</button>
+                                        </form>
+                                        <form action="{{ url_for('remove_watch_later', movie_title=mtitle) }}" method="POST" style="flex:1;">
+                                            <button type="submit" class="btn-action-icon fav" style="background:rgba(244,63,94,0.2);" title="Remove"><i class="fa-solid fa-trash-can"></i></button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-content">
+                            <div class="movie-title" title="{{ mtitle }}">{{ mtitle }}</div>
+                            <div class="card-meta-row">
+                                <span class="badge-rating"><i class="fa-solid fa-star"></i> {{ mrating }}</span>
+                                <span class="badge-genre">{{ mgenre }}</span>
+                                <span>{{ myear }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- FRIENDLY EMPTY STATE -->
+            <div class="empty-state-box">
+                <div class="empty-icon-circle" style="background: rgba(6, 182, 212, 0.12); color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.3);">
+                    <i class="fa-solid fa-bookmark"></i>
+                </div>
+                <div class="empty-title">Your Watch Later List is Empty</div>
+                <p class="empty-desc">
+                    Bookmark movies you intend to watch later so you never lose track of interesting recommendations!
+                </p>
+                <a href="/" class="btn-cta" style="background: var(--accent-cyan);">
+                    <i class="fa-solid fa-compass"></i> Discover Movies
+                </a>
+            </div>
+        {% endif %}
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="margin-top: auto; padding: 30px 6%; text-align: center; border-top: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.85rem;">
+        <p>&copy; 2026 MovieFlix AI Recommendation Platform. All rights reserved.</p>
+    </footer>
+
+    <!-- SHARED JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

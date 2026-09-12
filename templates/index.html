@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieFlix | AI-Powered Movie Recommendations</title>
+
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- MovieFlix Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- STICKY NAVBAR -->
+    <nav class="navbar">
+        <a href="/" class="logo-brand">
+            <div class="logo-icon"><i class="fa-solid fa-play"></i></div>
+            <span class="logo-text">MovieFlix</span>
+        </a>
+
+        <ul class="nav-menu">
+            <li><a href="/" class="nav-link active"><i class="fa-solid fa-house"></i> <span>Home</span></a></li>
+            <li><a href="#discover" class="nav-link"><i class="fa-solid fa-compass"></i> <span>Discover</span></a></li>
+            <li><a href="{{ url_for('favorites_page') }}" class="nav-link"><i class="fa-solid fa-heart"></i> <span>Favorites</span></a></li>
+            <li><a href="{{ url_for('watch_later_page') }}" class="nav-link"><i class="fa-solid fa-bookmark"></i> <span>Watch Later</span></a></li>
+            <li><a href="{{ url_for('dashboard') }}" class="nav-link"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            
+            {% if session.get('user') %}
+                <li><a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user"></i> <span>Profile</span></a></li>
+                <li class="nav-profile">
+                    <a href="{{ url_for('profile') }}" class="avatar-badge" title="User Profile">
+                        {{ session['user'][0]|upper }}
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn-logout" title="Sign Out">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span>
+                    </a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{{ url_for('login') }}" class="btn-cta" style="padding: 8px 20px; font-size: 0.88rem;">
+                        Sign In
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- HERO SECTION & AUTOCOMPLETE SEARCH -->
+    <section class="hero-banner">
+        <h1 class="hero-title">Find Your Next Favorite Movie</h1>
+        <p class="hero-subtitle">
+            Experience intelligent, AI-driven movie recommendations tailored specifically to your viewing preferences, favorites, and ratings.
+        </p>
+
+        <div class="search-container">
+            <form class="search-box" action="/recommend" method="POST">
+                <input
+                    type="text"
+                    id="movieInput"
+                    name="movie_name"
+                    class="search-input-field"
+                    placeholder="Search a movie you love (e.g., Inception, Interstellar)..."
+                    onkeyup="getSuggestions()"
+                    autocomplete="off"
+                    required
+                >
+                <button type="submit" class="search-submit-btn">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Get Recommendations
+                </button>
+            </form>
+            <div id="suggestions"></div>
+        </div>
+
+        <!-- DISCOVER FILTERS TOOLBAR -->
+        <div id="discover" class="filter-toolbar">
+            <form action="{{ url_for('filter_results') }}" method="POST" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; width:100%; justify-content:center;">
+                <select name="genre" class="filter-select">
+                    <option value="All">All Genres</option>
+                    <option value="Action">Action</option>
+                    <option value="Adventure">Adventure</option>
+                    <option value="Animation">Animation</option>
+                    <option value="Comedy">Comedy</option>
+                    <option value="Crime">Crime</option>
+                    <option value="Drama">Drama</option>
+                    <option value="Fantasy">Fantasy</option>
+                    <option value="Horror">Horror</option>
+                    <option value="Romance">Romance</option>
+                    <option value="Sci-Fi">Sci-Fi</option>
+                    <option value="Thriller">Thriller</option>
+                </select>
+
+                <input type="number" name="min_year" placeholder="Min Year (e.g. 1990)" class="filter-input" style="width: 150px;">
+                <input type="number" name="max_year" placeholder="Max Year (e.g. 2024)" class="filter-input" style="width: 150px;">
+
+                <button type="submit" class="filter-btn">
+                    <i class="fa-solid fa-sliders"></i> Filter Movies
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- SEARCH RECOMMENDATION RESULTS -->
+    {% if matched_title %}
+    <main class="content-section">
+        <div class="section-header">
+            <div class="section-title-box">
+                <div class="section-indicator"></div>
+                <h2 class="section-title">Recommendations for: {{ matched_title }}</h2>
+            </div>
+            <span class="section-badge">Matched Result</span>
+        </div>
+
+        <div class="movie-grid">
+            {% for movie in recommendations %}
+                <div class="movie-card lazy-poster-card" data-movie-title="{{ movie['title']|e }}">
+                    <div class="poster-box">
+                        {% if movie['poster'] and movie['poster'] != 'N/A' %}
+                            <img class="poster-img" src="{{ movie['poster'] }}" alt="{{ movie['title'] }}">
+                        {% else %}
+                            <div class="poster-placeholder">
+                                <i class="fa-solid fa-clapperboard"></i>
+                                <span>{{ movie['title'] }}</span>
+                            </div>
+                        {% endif %}
+
+                        <div class="card-overlay">
+                            <div class="overlay-actions">
+                                <button class="btn-action-icon" onclick="openMovieDetailsModal('{{ movie['title']|replace('\'', '\\\'') }}')">
+                                    <i class="fa-solid fa-circle-info"></i> Details
+                                </button>
+                                <div class="action-btn-row">
+                                    <form action="/favorite" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon fav" title="Favorite"><i class="fa-solid fa-heart"></i></button>
+                                    </form>
+                                    <form action="{{ url_for('add_watch_later') }}" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon watch" title="Watch Later"><i class="fa-solid fa-bookmark"></i></button>
+                                    </form>
+                                    <form action="/watched" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon done" title="Watched"><i class="fa-solid fa-check"></i></button>
+                                    </form>
+                                </div>
+                                <form action="/rate" method="POST" class="rate-select-form">
+                                    <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                    <select name="rating" class="rate-select" required>
+                                        <option value="">Rate ⭐</option>
+                                        <option value="5">5 ⭐</option>
+                                        <option value="4">4 ⭐</option>
+                                        <option value="3">3 ⭐</option>
+                                        <option value="2">2 ⭐</option>
+                                        <option value="1">1 ⭐</option>
+                                    </select>
+                                    <button type="submit" class="btn-rate-submit">OK</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-content">
+                        <div class="movie-title" title="{{ movie['title'] }}">{{ movie['title'] }}</div>
+                        <div class="card-meta-row">
+                            <span class="badge-rating"><i class="fa-solid fa-star"></i> {{ movie['rating'] }}</span>
+                            <span class="badge-genre">{{ movie['genre'] }}</span>
+                            <span>{{ movie['year'] }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+    {% endif %}
+
+    <!-- FILTERED MOVIES SECTION -->
+    {% if filtered_movies %}
+    <main class="content-section">
+        <div class="section-header">
+            <div class="section-title-box">
+                <div class="section-indicator"></div>
+                <h2 class="section-title">Filtered Movies</h2>
+            </div>
+            <span class="section-badge">{{ filtered_count }} Results</span>
+        </div>
+
+        <div class="movie-grid">
+            {% for movie in filtered_movies %}
+                <div class="movie-card lazy-poster-card" data-movie-title="{{ movie['title']|e }}">
+                    <div class="poster-box">
+                        {% if movie['poster'] and movie['poster'] != 'N/A' %}
+                            <img class="poster-img" src="{{ movie['poster'] }}" alt="{{ movie['title'] }}">
+                        {% else %}
+                            <div class="poster-placeholder">
+                                <i class="fa-solid fa-film"></i>
+                                <span>{{ movie['title'] }}</span>
+                            </div>
+                        {% endif %}
+
+                        <div class="card-overlay">
+                            <div class="overlay-actions">
+                                <button class="btn-action-icon" onclick="openMovieDetailsModal('{{ movie['title']|replace('\'', '\\\'') }}')">
+                                    <i class="fa-solid fa-circle-info"></i> Details
+                                </button>
+                                <div class="action-btn-row">
+                                    <form action="/favorite" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon fav" title="Favorite"><i class="fa-solid fa-heart"></i></button>
+                                    </form>
+                                    <form action="{{ url_for('add_watch_later') }}" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon watch" title="Watch Later"><i class="fa-solid fa-bookmark"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-content">
+                        <div class="movie-title" title="{{ movie['title'] }}">{{ movie['title'] }}</div>
+                        <div class="card-meta-row">
+                            <span class="badge-rating"><i class="fa-solid fa-star"></i> {{ movie['rating'] }}</span>
+                            <span class="badge-genre">{{ movie['genre'] }}</span>
+                            <span>{{ movie['year'] }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+    {% endif %}
+
+    <!-- PERSONALIZED RECOMMENDATIONS (LOGGED IN USER) -->
+    {% if personalized_movies %}
+    <section class="content-section">
+        <div class="section-header">
+            <div class="section-title-box">
+                <div class="section-indicator"></div>
+                <h2 class="section-title">Recommended For You</h2>
+            </div>
+            <span class="section-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border-color: rgba(16, 185, 129, 0.3);">
+                <i class="fa-solid fa-sparkles"></i> Personalized from your Favorites, Watchlist & Ratings
+            </span>
+        </div>
+
+        <div class="movie-grid">
+            {% for movie in personalized_movies %}
+                <div class="movie-card lazy-poster-card" data-movie-title="{{ movie['title']|e }}">
+                    <div class="poster-box">
+                        <div class="poster-placeholder">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>{{ movie['title'] }}</span>
+                        </div>
+                        <div class="card-overlay">
+                            <div class="overlay-actions">
+                                <button class="btn-action-icon" onclick="openMovieDetailsModal('{{ movie['title']|replace('\'', '\\\'') }}')">
+                                    <i class="fa-solid fa-circle-info"></i> Details
+                                </button>
+                                <div class="action-btn-row">
+                                    <form action="/favorite" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon fav" title="Favorite"><i class="fa-solid fa-heart"></i></button>
+                                    </form>
+                                    <form action="{{ url_for('add_watch_later') }}" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon watch" title="Watch Later"><i class="fa-solid fa-bookmark"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-content">
+                        <div class="movie-title" title="{{ movie['title'] }}">{{ movie['title'] }}</div>
+                        <div class="card-meta-row">
+                            <span class="badge-rating"><i class="fa-solid fa-star"></i> {{ movie['rating'] }}</span>
+                            <span class="badge-genre">{{ movie['genre'] }}</span>
+                            <span>{{ movie['year'] }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- TRENDING MOVIES ROW -->
+    {% if trending_movies %}
+    <section class="content-section">
+        <div class="section-header">
+            <div class="section-title-box">
+                <div class="section-indicator"></div>
+                <h2 class="section-title">Trending Movies</h2>
+            </div>
+            <span class="section-badge"><i class="fa-solid fa-fire" style="color:var(--accent-red);"></i> Popular Now</span>
+        </div>
+
+        <div class="movie-grid">
+            {% for movie in trending_movies %}
+                <div class="movie-card lazy-poster-card" data-movie-title="{{ movie['title']|e }}">
+                    <div class="poster-box">
+                        <div class="poster-placeholder">
+                            <i class="fa-solid fa-film"></i>
+                            <span>{{ movie['title'] }}</span>
+                        </div>
+                        <div class="card-overlay">
+                            <div class="overlay-actions">
+                                <button class="btn-action-icon" onclick="openMovieDetailsModal('{{ movie['title']|replace('\'', '\\\'') }}')">
+                                    <i class="fa-solid fa-circle-info"></i> Details
+                                </button>
+                                <div class="action-btn-row">
+                                    <form action="/favorite" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon fav" title="Favorite"><i class="fa-solid fa-heart"></i></button>
+                                    </form>
+                                    <form action="{{ url_for('add_watch_later') }}" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon watch" title="Watch Later"><i class="fa-solid fa-bookmark"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-content">
+                        <div class="movie-title" title="{{ movie['title'] }}">{{ movie['title'] }}</div>
+                        <div class="card-meta-row">
+                            <span class="badge-rating"><i class="fa-solid fa-star"></i> {{ movie['rating'] }}</span>
+                            <span class="badge-genre">{{ movie['genre'] }}</span>
+                            <span>{{ movie['year'] }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- TOP RATED MOVIES ROW -->
+    {% if top_rated_movies %}
+    <section class="content-section">
+        <div class="section-header">
+            <div class="section-title-box">
+                <div class="section-indicator"></div>
+                <h2 class="section-title">Top Rated Movies</h2>
+            </div>
+            <span class="section-badge"><i class="fa-solid fa-trophy" style="color:var(--accent-gold);"></i> All-Time Favorites</span>
+        </div>
+
+        <div class="movie-grid">
+            {% for movie in top_rated_movies %}
+                <div class="movie-card lazy-poster-card" data-movie-title="{{ movie['title']|e }}">
+                    <div class="poster-box">
+                        <div class="poster-placeholder">
+                            <i class="fa-solid fa-crown"></i>
+                            <span>{{ movie['title'] }}</span>
+                        </div>
+                        <div class="card-overlay">
+                            <div class="overlay-actions">
+                                <button class="btn-action-icon" onclick="openMovieDetailsModal('{{ movie['title']|replace('\'', '\\\'') }}')">
+                                    <i class="fa-solid fa-circle-info"></i> Details
+                                </button>
+                                <div class="action-btn-row">
+                                    <form action="/favorite" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon fav" title="Favorite"><i class="fa-solid fa-heart"></i></button>
+                                    </form>
+                                    <form action="{{ url_for('add_watch_later') }}" method="POST" style="flex:1;">
+                                        <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                        <button type="submit" class="btn-action-icon watch" title="Watch Later"><i class="fa-solid fa-bookmark"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-content">
+                        <div class="movie-title" title="{{ movie['title'] }}">{{ movie['title'] }}</div>
+                        <div class="card-meta-row">
+                            <span class="badge-rating"><i class="fa-solid fa-star"></i> {{ movie['rating'] }}</span>
+                            <span class="badge-genre">{{ movie['genre'] }}</span>
+                            <span>{{ movie['year'] }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- FOOTER -->
+    <footer style="margin-top: auto; padding: 30px 6%; text-align: center; border-top: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.85rem;">
+        <p>&copy; 2026 MovieFlix AI Recommendation Platform. All rights reserved.</p>
+    </footer>
+
+    <!-- SHARED JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | MOVIEFLIX</title>
+    <!-- Importing Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- Core Styling & Global Theme --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #aacefa; /* Very soft pastel blue */
+            background-image: url("{{ url_for('static', filename='bg.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            
+        }
+
+        /* --- Premium Navigation Bar --- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 6%;
+            background: rgba(235, 244, 255, 0.85);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(79, 70, 229, 0.08);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4F46E5; /* Electric indigo */
+            letter-spacing: 2px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-favorites, .btn-watchlater {
+            color: #4F46E5;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 8px 18px;
+            border-radius: 50px;
+            background: rgba(79, 70, 229, 0.08);
+            border: 1px solid rgba(79, 70, 229, 0.12);
+            transition: all 0.2s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-favorites:hover, .btn-watchlater:hover {
+            background: rgba(79, 70, 229, 0.15);
+            transform: translateY(-1px);
+        }
+        .nav-icons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #0e62f1;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.icon-btn i {
+  font-size: 1.1rem;
+}
+
+        /* --- Hero Section & Custom Search Area --- */
+        .hero-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 50px 20px 30px 20px;
+            position: relative;
+        }
+
+        .hero-section h1 {
+            font-size: 2.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1E293B;
+            letter-spacing: 0.5px;
+        }
+
+        /* Wrapper to firmly hold the input and dropdown relative to each other */
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-top: 15px;
+            z-index: 10;
+        }
+
+        .search-form {
+            display: flex;
+            width: 100%;
+            background: #FFFFFF; /* Clean white background */
+            border: 1px solid rgba(79, 70, 229, 0.15);
+            border-radius: 50px;
+            padding: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.1), 0 8px 10px -6px rgba(79, 70, 229, 0.1);
+        }
+
+        .search-form:focus-within {
+            border-color: #4F46E5;
+            box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.2);
+            transform: scale(1.01);
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0 25px;
+            color: #1E293B;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .search-input::placeholder {
+            color: #94A3B8;
+        }
+
+        .search-button {
+            background: #4F46E5; /* Electric indigo */
+            color: #ffffff;
+            border: none;
+            outline: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .search-button:hover {
+            background: #4338CA;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .guidance-text {
+            font-size: 0.9rem;
+            color: #64748B;
+            margin-top: 12px;
+        }
+
+        /* Autocomplete Suggestion Dropdown Box */
+        #suggestions {
+            position: absolute;
+            top: 105%;
+            left: 20px;
+            right: 20px;
+            background: #FFFFFF;
+            border: 1px solid rgba(79, 70, 229, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(79, 70, 229, 0.1);
+            text-align: left;
+        }
+
+        #suggestions div {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+            color: #334155;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        #suggestions div:last-child {
+            border-bottom: none;
+        }
+
+        #suggestions div:hover {
+            background: rgba(79, 70, 229, 0.08);
+            color: #4F46E5;
+        }
+
+        /* --- Results Area & Grid Setup --- */
+        .results-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 30px 6%;
+            flex: 1;
+        }
+
+        .results-heading {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            font-weight: 600;
+            color: #1E293B;
+            border-left: 4px solid #4F46E5;
+            padding-left: 12px;
+        }
+
+        .movies-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 25px;
+        }
+
+        /* Movie Card Redesign */
+        .card {
+            background: #FFFFFF;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(79, 70, 229, 0.08);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-6px) scale(1.02);
+            border-color: rgba(79, 70, 229, 0.3);
+            box-shadow: 0 12px 30px rgba(79, 70, 229, 0.12);
+        }
+
+        .poster-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 150%; /* Pure 2:3 cinematic aspect ratio */
+            background: #F1F5F9;
+            overflow: hidden;
+        }
+
+        .card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .card:hover img {
+            transform: scale(1.04);
+        }
+
+        .no-poster {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #94A3B8;
+            font-size: 0.9rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        .movie-info {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .movie-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1E293B;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+
+        .meta-text {
+            font-size: 0.85rem;
+            color: #64748B;
+        }
+
+        .rating-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #D97706; /* Warmer amber for light theme ratings */
+        }
+
+        /* Inline Integrated Save Button */
+        .btn-save {
+            width: 100%;
+            padding: 10px;
+            background: rgba(79, 70, 229, 0.06);
+            border: 1px solid rgba(79, 70, 229, 0.12);
+            color: #4F46E5;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-top: auto; /* Pushes button to bottom of card */
+            transition: all 0.2s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-save:hover {
+            background: #4F46E5;
+            color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+    </style>
+
+    <script>
+        async function getSuggestions(){
+            let input = document.getElementById("movieInput").value.toLowerCase();
+            if (!input) {
+                document.getElementById("suggestions").innerHTML = "";
+                return;
+            }
+
+            let response = await fetch("/titles");
+            let titles = await response.json();
+
+            let matches = titles.filter(
+                title => title.toLowerCase().includes(input)
+            );
+
+            let suggestionsDiv = document.getElementById("suggestions");
+            suggestionsDiv.innerHTML = "";
+
+            matches.slice(0,5).forEach(movie=>{
+                suggestionsDiv.innerHTML += `<div onclick="selectMovie('${movie.replace(/'/g, "\\'")}')">${movie}</div>`;
+            });
+        }
+
+        function selectMovie(movie){
+            document.getElementById("movieInput").value = movie;
+            document.getElementById("suggestions").innerHTML = "";
+        }
+    </script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">MOVIEFLIX</a>
+        <div class="nav-icons">
+    <a href="http://127.0.0.1:5000/favorites" class="icon-btn" title="View Favorites">
+      <i class="fa-solid fa-heart"></i>
+    </a>
+    <a href="http://127.0.0.1:5000/watch-later" class="icon-btn" title="Watch Later">
+      <i class="fa-solid fa-bookmark"></i>
+    </a>
+    <a href="{{ url_for('dashboard') }}" class="nav-icon" title="Dashboard">
+    📊
+    </a>
+  </div>
+        
+    </nav>
+
+    <section class="hero-section">
+        <h1>Welcome TO MovieFlix</h1>
+        <h2>For what Movie I recommend you today</h2>
+        <div class="search-wrapper">
+            <form class="search-form" action="/recommend" method="POST">
+                <input
+                    type="text"
+                    id="movieInput"
+                    name="movie_name"
+                    class="search-input"
+                    placeholder="Enter a movie you like..."
+                    onkeyup="getSuggestions()"
+                    autocomplete="off"
+                    required
+                >
+                <button type="submit" class="search-button">Recommend</button>
+            </form>
+            <div id="suggestions"></div>
+        </div>
+        <p class="guidance-text">Try searching for 'Inception', 'Interstellar', or 'The Dark Knight'</p>
+    </section>
+
+    {% if matched_title %}
+    <main class="results-container">
+        <h2 class="results-heading">Showing results for: {{ matched_title }}</h2>
+
+        <div class="movies-container">
+            {% for movie in recommendations %}
+            <div class="card">
+                <div class="poster-wrapper">
+                    {% if movie['poster'] %}
+                        <img src="{{ movie['poster'] }}" alt="{{ movie['title'] }}">
+                    {% else %}
+                        <div class="no-poster">🎬 No poster available</div>
+                    {% endif %}
+                </div>
+                
+                <div class="movie-info">
+                    <h3 title="{{ movie['title'] }}">{{ movie['title'] }}</h3>
+                    <div class="rating-text">⭐ Rating: {{ movie['rating'] }}</div>
+                    <div class="meta-text">🎭 Genre: {{ movie['genre'] }}</div>
+                    <div class="meta-text">📅 Year: {{ movie['year'] }}</div>
+                    
+                    <form action="/favorite" method="POST" style="margin-top: 10px;">
+    <input type="hidden" name="movie" value="{{ movie['title'] }}">
+    <button type="submit" class="btn-save">
+        ❤️ Save to Favorites
+    </button>
+</form>
+
+
+<form action="{{ url_for('add_watch_later') }}" method="POST">
+    <input type="hidden" name="movie" value="{{ movie['title'] }}">
+    <button type="submit" class="btn-save">
+        🔖 Save to Watch Later
+    </button>
+</form>
+
+
+<form action="/watched" method="POST">
+    <input type="hidden" name="movie" value="{{ movie['title'] }}">
+    <button type="submit" class="btn-save">
+        ✅ Mark as Watched
+    </button>
+</form>
+
+
+<form action="/rate" method="POST">
+
+    <input type="hidden" name="movie" value="{{ movie['title'] }}">
+
+    <select name="rating" required
+            style="width:100%; padding:10px; margin-top:8px;
+                   border-radius:8px; border:1px solid #ddd;
+                   font-family:'Poppins', sans-serif;">
+
+        <option value="">⭐ Rate this movie</option>
+        <option value="1">⭐ 1</option>
+        <option value="2">⭐⭐ 2</option>
+        <option value="3">⭐⭐⭐ 3</option>
+        <option value="4">⭐⭐⭐⭐ 4</option>
+        <option value="5">⭐⭐⭐⭐⭐ 5</option>
+
+    </select>
+
+    <button type="submit" class="btn-save">
+        Submit Rating
+    </button>
+
+</form>
+                    
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    {% endif %}  
+
+</body>
+</html>

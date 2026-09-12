@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | MovieFlix</title>
+
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- MovieFlix Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-container">
+
+    <div class="auth-card">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <a href="/" class="logo-brand" style="justify-content: center;">
+                <div class="logo-icon"><i class="fa-solid fa-play"></i></div>
+                <span class="logo-text">MovieFlix</span>
+            </a>
+        </div>
+
+        <div class="auth-header">
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="auth-subtitle">Log in to access your personalized recommendations</p>
+        </div>
+
+        <form id="loginForm" method="POST">
+            <div class="form-group">
+                <label for="email" class="form-label"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="name@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label"><i class="fa-solid fa-lock"></i> Password</label>
+                <div style="position: relative;">
+                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+                    <i class="fa-solid fa-eye" id="togglePassword" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted);"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-auth-submit">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account yet? <a href="/register">Sign up for free</a>
+        </div>
+    </div>
+
+    <!-- LOADER OVERLAY -->
+    <div id="loader" class="modal-backdrop" style="background: rgba(11, 12, 16, 0.9);">
+        <div style="text-align: center; color: var(--accent-purple);">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 3rem; margin-bottom: 12px;"></i>
+            <p style="color: var(--text-primary); font-weight: 500;">Signing you in...</p>
+        </div>
+    </div>
+
+    <script>
+        // Password toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+
+        // Form submit animation
+        const form = document.getElementById('loginForm');
+        const loader = document.getElementById('loader');
+
+        if (form && loader) {
+            form.addEventListener('submit', function (e) {
+                loader.classList.add('active');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile | MovieFlix</title>
+
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- MovieFlix Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="/" class="logo-brand">
+            <div class="logo-icon"><i class="fa-solid fa-play"></i></div>
+            <span class="logo-text">MovieFlix</span>
+        </a>
+
+        <ul class="nav-menu">
+            <li><a href="/" class="nav-link"><i class="fa-solid fa-house"></i> <span>Home</span></a></li>
+            <li><a href="{{ url_for('favorites_page') }}" class="nav-link"><i class="fa-solid fa-heart"></i> <span>Favorites</span></a></li>
+            <li><a href="{{ url_for('watch_later_page') }}" class="nav-link"><i class="fa-solid fa-bookmark"></i> <span>Watch Later</span></a></li>
+            <li><a href="{{ url_for('dashboard') }}" class="nav-link"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-link active"><i class="fa-solid fa-user"></i> <span>Profile</span></a></li>
+            <li class="nav-profile">
+                <a href="{{ url_for('profile') }}" class="avatar-badge">
+                    {{ username[0]|upper }}
+                </a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- PROFILE CONTAINER -->
+    <main class="content-section" style="max-width: 900px;">
+
+        <!-- PROFILE HEADER CARD -->
+        <div class="analytics-section" style="text-align: center; padding: 40px 20px; position: relative;">
+            <div class="avatar-badge" style="width: 90px; height: 90px; font-size: 2.2rem; margin: 0 auto 16px auto; border-width: 4px;">
+                {{ username[0]|upper }}
+            </div>
+            
+            <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary);">{{ username }}</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 4px;">{{ user['email'] }}</p>
+            
+            <div style="margin-top: 14px;">
+                <span class="section-badge" style="background: rgba(139, 92, 246, 0.18); color: var(--text-secondary);">
+                    <i class="fa-solid fa-crown" style="color: var(--accent-gold);"></i> MovieFlix Member
+                </span>
+            </div>
+        </div>
+
+        <!-- ACTIVITY STATS ROW -->
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 32px;">
+            <div class="stat-card" style="padding: 16px; justify-content: center; text-align: center;">
+                <div>
+                    <div class="stat-number" style="font-size: 1.5rem; color: var(--accent-red);">{{ total_favorites }}</div>
+                    <div class="stat-label">Favorites</div>
+                </div>
+            </div>
+            <div class="stat-card" style="padding: 16px; justify-content: center; text-align: center;">
+                <div>
+                    <div class="stat-number" style="font-size: 1.5rem; color: var(--accent-cyan);">{{ total_watch_later }}</div>
+                    <div class="stat-label">Watch Later</div>
+                </div>
+            </div>
+            <div class="stat-card" style="padding: 16px; justify-content: center; text-align: center;">
+                <div>
+                    <div class="stat-number" style="font-size: 1.5rem; color: var(--accent-green);">{{ total_watched }}</div>
+                    <div class="stat-label">Watched</div>
+                </div>
+            </div>
+            <div class="stat-card" style="padding: 16px; justify-content: center; text-align: center;">
+                <div>
+                    <div class="stat-number" style="font-size: 1.5rem; color: var(--accent-gold);">{{ total_ratings }}</div>
+                    <div class="stat-label">Ratings</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDIT PROFILE DETAILS CARD -->
+        <div class="analytics-section">
+            <div class="section-header" style="margin-bottom: 24px;">
+                <div class="section-title-box">
+                    <div class="section-indicator"></div>
+                    <h2 class="section-title">Edit Account Settings</h2>
+                </div>
+            </div>
+
+            {% if message %}
+                <div class="alert-banner {{ message_type }}">
+                    {% if message_type == 'success' %}
+                        <i class="fa-solid fa-circle-check"></i>
+                    {% else %}
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    {% endif %}
+                    {{ message }}
+                </div>
+            {% endif %}
+
+            <form action="{{ url_for('profile') }}" method="POST">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                    <div class="form-group">
+                        <label for="username" class="form-label"><i class="fa-solid fa-user"></i> Username</label>
+                        <input type="text" id="username" name="username" class="form-input" value="{{ username }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                        <input type="email" id="email" name="email" class="form-input" value="{{ user['email'] }}" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label"><i class="fa-solid fa-key"></i> New Password (leave blank to keep current password)</label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••">
+                </div>
+
+                <div style="display: flex; gap: 16px; align-items: center; margin-top: 10px;">
+                    <button type="submit" class="btn-cta" style="border: none; cursor: pointer; padding: 12px 32px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="margin-top: auto; padding: 30px 6%; text-align: center; border-top: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.85rem;">
+        <p>&copy; 2026 MovieFlix AI Recommendation Platform. All rights reserved.</p>
+    </footer>
+
+    <!-- SHARED JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

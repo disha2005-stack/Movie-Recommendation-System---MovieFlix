@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | MovieFlix</title>
+
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- MovieFlix Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="/" class="logo-brand">
+            <div class="logo-icon"><i class="fa-solid fa-play"></i></div>
+            <span class="logo-text">MovieFlix</span>
+        </a>
+
+        <ul class="nav-menu">
+            <li><a href="/" class="nav-link"><i class="fa-solid fa-house"></i> <span>Home</span></a></li>
+            <li><a href="{{ url_for('favorites_page') }}" class="nav-link"><i class="fa-solid fa-heart"></i> <span>Favorites</span></a></li>
+            <li><a href="{{ url_for('watch_later_page') }}" class="nav-link"><i class="fa-solid fa-bookmark"></i> <span>Watch Later</span></a></li>
+            <li><a href="{{ url_for('dashboard') }}" class="nav-link active"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user"></i> <span>Profile</span></a></li>
+            <li class="nav-profile">
+                <a href="{{ url_for('profile') }}" class="avatar-badge">
+                    {{ username[0]|upper }}
+                </a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- DASHBOARD CONTENT CONTAINER -->
+    <main class="content-section">
+
+        <!-- WELCOME HEADER -->
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 class="hero-title" style="font-size: 2.2rem;">👋 Welcome Back, {{ username }}</h1>
+            <p class="hero-subtitle" style="margin-bottom: 0;">
+                Here is a real-time summary of your activity, movie preferences, and personalized AI recommendations.
+            </p>
+        </div>
+
+        <!-- STATS GRID -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon-wrapper red">
+                    <i class="fa-solid fa-heart"></i>
+                </div>
+                <div>
+                    <div class="stat-number">{{ total_favorites }}</div>
+                    <div class="stat-label">Favorites Saved</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon-wrapper cyan">
+                    <i class="fa-solid fa-bookmark"></i>
+                </div>
+                <div>
+                    <div class="stat-number">{{ total_watch_later }}</div>
+                    <div class="stat-label">Watch Later List</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon-wrapper">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <div class="stat-number">{{ total_watched }}</div>
+                    <div class="stat-label">Watched Movies</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon-wrapper gold">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div>
+                    <div class="stat-number">{{ total_ratings }}</div>
+                    <div class="stat-label">Rated Movies</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RATING & PREFERENCES ANALYTICS -->
+        <div class="analytics-section">
+            <div class="section-header" style="margin-bottom: 16px;">
+                <div class="section-title-box">
+                    <div class="section-indicator"></div>
+                    <h2 class="section-title">Your Preference Summary</h2>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 30px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                <div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 6px;">Average Rating Score</div>
+                    {% if total_ratings > 0 %}
+                        <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-gold); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-star"></i> {{ average_rating }} <span style="font-size: 1.1rem; color: var(--text-muted); font-weight: 400;">/ 5.0</span>
+                        </div>
+                    {% else %}
+                        <div style="color: var(--text-muted); font-size: 0.95rem;">No ratings submitted yet. Rate movies on Home to see your score summary!</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">Your Top Genre Interests</div>
+                    <div class="genre-tags-container">
+                        <span class="genre-tag-pill"><i class="fa-solid fa-film"></i> Action</span>
+                        <span class="genre-tag-pill"><i class="fa-solid fa-atom"></i> Sci-Fi</span>
+                        <span class="genre-tag-pill"><i class="fa-solid fa-masks-theater"></i> Drama</span>
+                        <span class="genre-tag-pill"><i class="fa-solid fa-dragon"></i> Fantasy</span>
+                        <span class="genre-tag-pill"><i class="fa-solid fa-ghost"></i> Thriller</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERSONALIZED RECOMMENDATIONS SECTION -->
+        <div style="margin-bottom: 40px;">
+            <div class="section-header">
+                <div class="section-title-box">
+                    <div class="section-indicator"></div>
+                    <h2 class="section-title">Recommended For You</h2>
+                </div>
+                <span class="section-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Personalized</span>
+            </div>
+
+            {% if personalized_movies %}
+                <div class="movie-grid">
+                    {% for movie in personalized_movies %}
+                        <div class="movie-card lazy-poster-card" data-movie-title="{{ movie['title']|e }}">
+                            <div class="poster-box">
+                                {% if movie['poster'] and movie['poster'] != 'N/A' %}
+                                    <img class="poster-img" src="{{ movie['poster'] }}" alt="{{ movie['title'] }}">
+                                {% else %}
+                                    <div class="poster-placeholder">
+                                        <i class="fa-solid fa-sparkles"></i>
+                                        <span>{{ movie['title'] }}</span>
+                                    </div>
+                                {% endif %}
+
+                                <div class="card-overlay">
+                                    <div class="overlay-actions">
+                                        <button class="btn-action-icon" onclick="openMovieDetailsModal('{{ movie['title']|replace('\'', '\\\'') }}')">
+                                            <i class="fa-solid fa-circle-info"></i> Details
+                                        </button>
+                                        <div class="action-btn-row">
+                                            <form action="/favorite" method="POST" style="flex:1;">
+                                                <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                                <button type="submit" class="btn-action-icon fav" title="Favorite"><i class="fa-solid fa-heart"></i></button>
+                                            </form>
+                                            <form action="{{ url_for('add_watch_later') }}" method="POST" style="flex:1;">
+                                                <input type="hidden" name="movie" value="{{ movie['title'] }}">
+                                                <button type="submit" class="btn-action-icon watch" title="Watch Later"><i class="fa-solid fa-bookmark"></i></button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-content">
+                                <div class="movie-title" title="{{ movie['title'] }}">{{ movie['title'] }}</div>
+                                <div class="card-meta-row">
+                                    <span class="badge-rating"><i class="fa-solid fa-star"></i> {{ movie['rating'] }}</span>
+                                    <span class="badge-genre">{{ movie['genre'] }}</span>
+                                    <span>{{ movie['year'] }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state-box" style="margin: 20px 0;">
+                    <div class="empty-icon-circle"><i class="fa-solid fa-lightbulb"></i></div>
+                    <div class="empty-title">Build Your Movie Profile</div>
+                    <p class="empty-desc">
+                        Add movies to your Favorites, Watch Later list, or rate titles with 4–5 stars to receive custom personalized recommendations!
+                    </p>
+                    <a href="/" class="btn-cta">Explore Movies</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ACTIVITY BREAKDOWN LISTS -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+
+            <!-- FAVORITES SUMMARY -->
+            <div class="analytics-section" style="margin-bottom: 0;">
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-heart" style="color:var(--accent-red);"></i> Favorites ({{ favorites|length }})
+                </h3>
+                {% if favorites %}
+                    <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+                        {% for fav in favorites[:5] %}
+                            <li style="background:var(--bg-secondary); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.88rem; color:var(--text-primary); border:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between;">
+                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ fav }}</span>
+                                <button onclick="openMovieDetailsModal('{{ fav|replace('\'', '\\\'') }}')" style="background:none; border:none; color:var(--accent-purple); cursor:pointer;"><i class="fa-solid fa-circle-info"></i></button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="color:var(--text-muted); font-size:0.88rem;">No favorite movies added yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- WATCH LATER SUMMARY -->
+            <div class="analytics-section" style="margin-bottom: 0;">
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-bookmark" style="color:var(--accent-cyan);"></i> Watch Later ({{ watch_later|length }})
+                </h3>
+                {% if watch_later %}
+                    <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+                        {% for wl in watch_later[:5] %}
+                            <li style="background:var(--bg-secondary); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.88rem; color:var(--text-primary); border:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between;">
+                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ wl }}</span>
+                                <button onclick="openMovieDetailsModal('{{ wl|replace('\'', '\\\'') }}')" style="background:none; border:none; color:var(--accent-purple); cursor:pointer;"><i class="fa-solid fa-circle-info"></i></button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="color:var(--text-muted); font-size:0.88rem;">Your watch later list is empty.</p>
+                {% endif %}
+            </div>
+
+            <!-- WATCHED SUMMARY -->
+            <div class="analytics-section" style="margin-bottom: 0;">
+                <h3 style="font-size: 1.1rem; margin-bottom: 16px; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-circle-check" style="color:var(--accent-green);"></i> Watched ({{ watched|length }})
+                </h3>
+                {% if watched %}
+                    <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+                        {% for w in watched[:5] %}
+                            <li style="background:var(--bg-secondary); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.88rem; color:var(--text-primary); border:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between;">
+                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ w }}</span>
+                                <button onclick="openMovieDetailsModal('{{ w|replace('\'', '\\\'') }}')" style="background:none; border:none; color:var(--accent-purple); cursor:pointer;"><i class="fa-solid fa-circle-info"></i></button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="color:var(--text-muted); font-size:0.88rem;">No movies marked as watched yet.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="margin-top: auto; padding: 30px 6%; text-align: center; border-top: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.85rem;">
+        <p>&copy; 2026 MovieFlix AI Recommendation Platform. All rights reserved.</p>
+    </footer>
+
+    <!-- SHARED JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
