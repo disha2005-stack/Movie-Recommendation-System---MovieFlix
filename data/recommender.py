@@ -400,11 +400,12 @@ def get_movie_details(movie_name):
     except Exception:
 
         return {
-            "poster": None,
-            "rating": "N/A",
-            "genre": "N/A",
-            "year": "N/A"
-        }
+    "poster": None,
+    "rating": "N/A",
+    "genre": "N/A",
+    "year": "N/A",
+    "plot": "N/A"
+}
 
 
     # Movie found
@@ -418,29 +419,22 @@ def get_movie_details(movie_name):
 
 
         return {
-            "poster": poster,
-            "rating": data.get(
-                "imdbRating",
-                "N/A"
-            ),
-            "genre": data.get(
-                "Genre",
-                "N/A"
-            ),
-            "year": data.get(
-                "Year",
-                "N/A"
-            )
-        }
+    "poster": poster,
+    "rating": data.get("imdbRating", "N/A"),
+    "genre": data.get("Genre", "N/A"),
+    "year": data.get("Year", "N/A"),
+    "plot": data.get("Plot", "N/A")
+}
 
 
     # Movie not found
     return {
-        "poster": None,
-        "rating": "N/A",
-        "genre": "N/A",
-        "year": "N/A"
-    }
+    "poster": None,
+    "rating": "N/A",
+    "genre": "N/A",
+    "year": "N/A",
+    "plot": "N/A"
+}
 
 
 # ============================================================
